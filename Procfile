@@ -1,1 +1,1 @@
-worker: python BazelgeuseBot.py
+worker: python3 BazelgeuseBot.py
