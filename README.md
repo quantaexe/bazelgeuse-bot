@@ -7,6 +7,4 @@ Current Features:
 whatever text channel the user is currently on
 - BazelgeuseBot will react to its name being mentioned in any text channels with a text message in response. Additionally,
 if the user mentions "bazelgeuse" and "nudes" somewhere in their message, BazelgeuseBot will post a picture of itself.
-
-Issues:
-- BazelgeuseBot currently will not disconnect from the voice channel after it has joined.
+- Entering the poop emoji will cause BazelgeuseBot to leave a voice channel
