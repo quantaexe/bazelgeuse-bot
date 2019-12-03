@@ -118,4 +118,4 @@ async def on_message(message):
     await bot.process_commands(message)
 
 background_check.start()
-bot.run("NjQ0ODI3MTkxMzU5NTY5OTMw.XdXxsQ.K6oEghUH8sf3ePP-L6Ksef203Io")
+bot.run(TOKEN)
