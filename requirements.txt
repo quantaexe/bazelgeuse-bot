@@ -1,2 +1,2 @@
 discord.py[voice]
-mkdocs
+mkdocs==1.0.4
