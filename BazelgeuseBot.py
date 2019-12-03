@@ -2,17 +2,31 @@ import discord
 from discord import FFmpegPCMAudio
 from discord.utils import get
 from discord.ext import commands
+from discord.ext.tasks import loop
 from discord.ext.commands import Bot
 from discord.ext.commands import CommandNotFound
 import time
 import asyncio
 import os
 
+global voice_active
+voice_active = False #flag to determine if already logged into voice
 bot = commands.Bot(command_prefix = "bazelgeuse ")
+
+@loop(seconds=60)
+async def background_check():
+    await bot.wait_until_ready()
+    global voice_active
+    voice_active = False
+    print("Hey")
+
+@background_check.before_loop
+async def background_check_before():
+    await bot.wait_until_ready()
 
 @bot.event
 async def on_ready():
-    print("Bazelgeuse is ready!")
+    print("Bazelgeuse is in")
 
 @bot.event
 async def on_command_error(context, error):
@@ -37,14 +51,9 @@ async def scream(context):
     audio = os.path.join(dir_path, "bazelgeuse_scream.mp4.mp4")
     voice.play(discord.FFmpegPCMAudio(audio), after=lambda e: print('done screaming', e))
 
-# The following function tries to make Bazelgeuse leave the channel
-# on command !leave, but Bazelgeuse doesn't actually leave the channel
-# on command because of the on_voice_state_update function
-# and Bazelgeuse does what it wants
+# The following function makes bazelguese leave the voice channel
 @bot.command(pass_context=True)
 async def leave(context):
-    response = "no  😈"
-    await context.message.channel.send(response)
     voice = get(bot.voice_clients, guild=context.guild)
     if voice and voice.is_connected():
         await voice.disconnect()
@@ -59,16 +68,19 @@ async def on_voice_state_update(member, before, after):
         channel = after.channel
     else:
         return
-    try:
-        voice = await channel.connect()
-        if voice and voice.is_connected():
-            await voice.move_to(channel)
-        # get path to audio file
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        audio = os.path.join(dir_path, "bazelgeuse_scream.mp4.mp4")
-        voice.play(discord.FFmpegPCMAudio(audio), after=lambda e: print('done screaming', e))
-    except discord.ClientException:
-        print('Already logged in, but don\'t care')
+    global voice_active
+    if voice_active == False:
+        try:
+            voice = await channel.connect()
+            if voice and voice.is_connected():
+                await voice.move_to(channel)
+            # get path to audio file
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            audio = os.path.join(dir_path, "bazelgeuse_scream.mp4.mp4")
+            voice.play(discord.FFmpegPCMAudio(audio), after=lambda e: print('done screaming', e))
+            voice_active = True
+        except discord.ClientException:
+            print('Already logged in, but don\'t care')
 
 # The following function has Bazelgeuse react
 # to its name being mentioned
@@ -76,6 +88,7 @@ async def on_voice_state_update(member, before, after):
 async def on_message(message):
     if message.author == bot.user:
         return
+    voice = get(bot.voice_clients, guild=message.guild)
     if message.content == "bazelgeuse no":
         response = "bazelgeuse yes  😈"
         await message.channel.send(response)
@@ -86,6 +99,9 @@ async def on_message(message):
         print('')
     else:
         # responds to its name being used in any text channel
+        if '💩' in message.content:
+            if voice and voice.is_connected():
+                await voice.disconnect()
         if 'bazelgeuse' in message.content:
             # sends a picture of itself if someone requests nudes
             if 'nudes' in message.content:
@@ -101,4 +117,5 @@ async def on_message(message):
     # need the following line for other commands to work
     await bot.process_commands(message)
 
-bot.run("NjQ0ODI3MTkxMzU5NTY5OTMw.Xc5tqQ.Xo19Sqtr65Y34GS_Tp2BPZ9tpUM")
+background_check.start()
+bot.run("NjQ0ODI3MTkxMzU5NTY5OTMw.XdXxsQ.K6oEghUH8sf3ePP-L6Ksef203Io")
